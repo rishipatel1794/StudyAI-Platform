@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
+import mongoose from 'mongoose';
+import bcrypt from 'bcrypt';
 
 const { Schema } = mongoose;
 
@@ -42,8 +42,43 @@ AdminSchema.pre('save', async function (next) {
 AdminSchema.methods.comparePassword = async function (candidate) {
     return bcrypt.compare(candidate, this.password);
 };
+// Auto-create a superuser on startup.
+// Keeps logic simple: try immediately, otherwise wait for mongoose connection.
+export const attemptCreate = () => {
+    try {
+        const AdminModel = (mongoose.models && mongoose.models.Admin)
+            ? mongoose.models.Admin
+            : (mongoose.modelNames && mongoose.modelNames().includes('Admin') ? mongoose.model('Admin') : null);
 
-// static helper to create a superuser; uses provided params or environment vars
+        if (AdminModel) {
+            AdminModel.createSuperuser().catch(err => {
+                // eslint-disable-next-line no-console
+                console.error('createSuperuser failed:', err);
+            });
+            return;
+        }
+    } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('Error checking Admin model:', err);
+        return;
+    }
+
+    mongoose.connection.once('open', () => {
+        try {
+            const AdminModel = mongoose.model('Admin');
+            AdminModel.createSuperuser().catch(err => {
+                // eslint-disable-next-line no-console
+                console.error('createSuperuser failed (on open):', err);
+            });
+        } catch (err) {
+            // eslint-disable-next-line no-console
+            console.error('Error during superuser creation (on open):', err);
+        }
+    });
+};
+
+// Schedule without blocking module initialization.
+
 AdminSchema.statics.createSuperuser = async function ({ username, email, password } = {}) {
     username = username || process.env.SUPERUSER_USERNAME;
     email = email || process.env.SUPERUSER_EMAIL;
@@ -70,5 +105,4 @@ AdminSchema.statics.createSuperuser = async function ({ username, email, passwor
     return admin;
 };
 
-const Admin = mongoose.model('Admin', AdminSchema);
-module.exports = Admin;
+export const Admin = mongoose.model('Admin', AdminSchema);
