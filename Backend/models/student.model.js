@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const { Schema } = mongoose;
 
@@ -19,14 +19,10 @@ const StudentSchema = new Schema(
             type: String,
             trim: true,
         },
-        study_habits: {
-            // free text: preferences, daily hours, notes
-            trim: true,
-        },
         // mark if the student prepares by themself
         is_self_prepared: {
             type: Boolean,
-            default: false,
+            default: true,
         },
         enrolled_mentors: {
             type: [{ type: Schema.Types.ObjectId, ref: "Mentor" }],
@@ -48,23 +44,27 @@ const StudentSchema = new Schema(
                     // mock exams may be created by a Mentor or by an AI system
                     created_by: { type: String, enum: ["Mentor", "AI"], required: true, default: "Mentor" },
                 },
-            ]
+            ],
+            required: false,
         },
         progress: {
             // exam-wise scores, material completed, timestamps, etc.
             type: Schema.Types.Mixed,
             default: {},
+            required: false,
         },
         saved_materials: [
             {
                 type: Schema.Types.ObjectId,
                 ref: "StudyMaterial",
+                required: false,
             },
         ],
         community_posts: [
             {
                 type: Schema.Types.ObjectId,
                 ref: "Post",
+                required: false,
             },
         ],
     },
@@ -81,5 +81,4 @@ const StudentSchema = new Schema(
     }
 );
 
-module.exports =
-    mongoose.models.Student || mongoose.model("Student", StudentSchema);
+export const Student = mongoose.model("Student", StudentSchema);

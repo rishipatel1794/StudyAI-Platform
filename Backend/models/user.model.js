@@ -1,5 +1,5 @@
 import mogoose from "mongoose";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 const userSchema = new mogoose.Schema(
     {
@@ -11,28 +11,54 @@ const userSchema = new mogoose.Schema(
             lowercase: true,
             trim: true,
         },
-        password_hash: { type: String, required: true },
+        password: { type: String, required: true },
         role: {
             type: String,
             enum: ["student", "mentor", "admin"],
             default: "student",
         },
-        profile_pic: { type: String, default: null },
+        avatar: { type: String, default: null },
     },
     { timestamps: true }
 );
 
 // instance method to compare a plain password with the stored hash
-userSchema.methods.comparePassword = function (candidatePassword) {
-    return bcrypt.compare(candidatePassword, this.password_hash);
+userSchema.pre("save", async function (next) {
+    if (!this.isModified("password")) return next();
+
+    this.password = bcrypt.hash(this.password, 10);
+    next();
+});
+
+userSchema.methods.isPasswordCorrect = async function (password) {
+    return await bcrypt.compare(password, this.password);
 };
 
-// instance method to generate a JWT (requires JWT_SECRET in env)
-userSchema.methods.generateAuthToken = function () {
-    const payload = { id: this._id, role: this.role, email: this.email };
-    return jwt.sign(payload, process.env.JWT_SECRET || "change_this_secret", {
-        expiresIn: "7d",
-    });
+userSchema.methods.generateAccessToken = function () {
+    return jwt.sign(
+        {
+            _id: this._id,
+            email: this.email,
+            name: this.name,
+            role: this.role,
+        },
+        process.env.ACCESS_TOKEN_SECRET,
+        {
+            expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
+        }
+    );
+};
+
+userSchema.methods.generateRefreshToken = function () {
+    return jwt.sign(
+        {
+            _id: this._id,
+        },
+        process.env.REFRESH_TOKEN_SECRET,
+        {
+            expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
+        }
+    );
 };
 
 export const User = mogoose.model("User", userSchema);

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const { Schema } = mongoose;
 
@@ -91,4 +91,4 @@ MentorSchema.methods.addCommunityAnswer = function (answerId) {
     return this.save();
 };
 
-module.exports = mongoose.model('Mentor', MentorSchema);
+export const Mentor = mongoose.model('Mentor', MentorSchema);
