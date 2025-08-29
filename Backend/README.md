@@ -1,139 +1,120 @@
-# AI Learning App Backend
+# StudyAI Platform Backend
 
-Backend service for the AI Learning App (ReactJS frontend). Provides user management, course content APIs, progress tracking, and AI assistant endpoints (planned).
+This is the backend for the StudyAI Platform, built with Node.js, Express, and MongoDB (Mongoose). It provides RESTful APIs for user management, authentication, study material, exams, and more.
 
-## Tech Stack
-- Node.js (>= 18)
-- Express.js
-- Database: MongoDB (or configure alternative)
-- Authentication: JWT (planned)
-- Tooling: TypeScript (if applicable), ESLint, Prettier, Nodemon
-- Testing: Jest / Supertest (scaffold)
-
-## Project Structure (proposed)
-```
-backend/
-├─ src/
-│  ├─ config/        # env, db connection
-│  ├─ models/        # Mongoose (or ORM) schemas
-│  ├─ routes/        # Express routers
-│  ├─ controllers/   # Request handlers
-│  ├─ services/      # Business logic
-│  ├─ middleware/    # Auth, error handling
-│  ├─ utils/         # Helpers
-│  └─ app.js / server.js
-├─ tests/
-├─ .env.example
-├─ package.json
-└─ README.md
-```
-
-## Setup
-
-### Prerequisites
-- Node.js 18+
-- npm or yarn
-- Running MongoDB instance (local or cloud)
-
-### Install
-```
-npm install
-```
-
-### Environment Variables (.env)
-Copy `.env.example` to `.env` and fill:
-```
-PORT=5000
-NODE_ENV=development
-MONGODB_URI=mongodb://localhost:27017/ai_learning
-JWT_SECRET=replace_with_strong_secret
-LOG_LEVEL=info
-```
-
-### Development
-```
-npm run dev
-```
-
-### Production build (if TypeScript / build step)
-```
-npm run build
-npm start
-```
-
-### Scripts (sample)
-```
-npm run dev      # Start with auto-reload
-npm test         # Run tests
-npm run lint     # Lint code
-npm run format   # Prettier format
-```
-
-## API (initial plan)
-| Domain        | Endpoints (planned)                 | Status |
-|---------------|-------------------------------------|--------|
-| Health        | GET /api/health                     | ✅     |
-| Auth          | POST /api/auth/register, /login     | ⏳     |
-| Users         | GET /api/users/me                   | ⏳     |
-| Courses       | CRUD /api/courses                   | ⏳     |
-| Progress      | GET /api/progress/:userId           | ⏳     |
-| AI Assistant  | POST /api/ai/chat                   | ⏳     |
-
-Legend: ✅ implemented, ⏳ pending
-
-## Error Handling
-Centralized error middleware returning JSON:
-```
-{
-    "success": false,
-    "message": "Resource not found"
-}
-```
-
-## Logging
-Use minimal console logging in dev. Consider winston/pino for prod.
-
-## Testing (scaffold)
-```
-npm test
-```
-Add tests under `tests/` mirroring `src/` structure.
-
-## Coding Standards
-- ESLint + Prettier enforced on commit (configure husky + lint-staged if desired).
-- Conventional Commits recommended:
-    - feat:, fix:, docs:, refactor:, test:, chore:
-
-## Deployment
-1. Build (if needed)
-2. Set environment variables
-3. Run with process manager (PM2 / Docker)
-4. Monitor logs & health endpoint
-
-### Docker (optional skeleton)
-```
-FROM node:18-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --only=production
-COPY dist ./dist
-ENV NODE_ENV=production
-EXPOSE 5000
-CMD ["node", "dist/server.js"]
-```
-
-## Roadmap (next)
-- Implement auth & refresh tokens
-- Add rate limiting & CORS config
-- Integrate AI inference service
-- Add course content ingestion pipeline
-- Add swagger / OpenAPI spec
-
-## Contributing
-PRs welcome. Open an issue first for significant changes.
-
-## License
-Add license (MIT or other) and replace this section.
+## Table of Contents
+- [Setup](#setup)
+- [Environment Variables](#environment-variables)
+- [Folder Structure](#folder-structure)
+- [API Endpoints](#api-endpoints)
+- [Database Models](#database-models)
+- [Middlewares](#middlewares)
+- [Utils](#utils)
 
 ---
-Update this README as features are implemented to keep parity with code.
+
+## Setup
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+2. Create a `.env` file in the `Backend/` directory with your MongoDB and Cloudinary credentials.
+3. Start the server:
+   ```bash
+   npm start
+   ```
+
+## Environment Variables
+```
+MONGODB_URI=your_mongodb_connection_string
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+```
+
+## Folder Structure
+```
+Backend/
+  app.js
+  index.js
+  constants.js
+  db/
+    db.js
+  controllers/
+    user.controller.js
+    otp.controller.js
+  middlewares/
+    multer.middleware.js
+  models/
+    admin.model.js
+    answer.model.js
+    exam.model.js
+    material.model.js
+    mentor.model.js
+    otp.model.js
+    post.model.js
+    question.model.js
+    student.model.js
+    studentExam.model.js
+    user.model.js
+  public/
+    temp/
+  routes/
+    user.routes.js
+  utils/
+    ApiError.js
+    ApiResponse.js
+    asyncHandler.js
+    cloudinary.js
+    mailSender.js
+```
+
+## API Endpoints
+
+### User Routes (`/api/v1/user`)
+- `POST /register` — Register a new user
+- `POST /login` — User login
+- `POST /send-otp` — Send OTP for verification
+- `POST /verify-otp` — Verify OTP
+- `GET /profile` — Get user profile (protected)
+
+### Study Material
+- `POST /material/upload` — Upload study material (PDF, video, notes, quiz)
+- `GET /material` — Get all study materials
+- `GET /material/:id` — Get study material by ID
+
+### Exams
+- `POST /exam/create` — Create a new exam
+- `GET /exam` — Get all exams
+- `GET /exam/:id` — Get exam by ID
+- `POST /exam/submit` — Submit exam answers
+
+### More endpoints are available for admin, mentor, and student management.
+
+## Database Models
+- **User**: Handles user data and authentication
+- **Admin**: Admin user data
+- **Mentor**: Mentor user data
+- **Student**: Student user data
+- **OTP**: OTP verification
+- **StudyMaterial**: Title, description, subject, type (pdf, video, notes, quiz), url, uploaded_by, created_at
+- **Exam**: Exam details and questions
+- **Answer**: Student answers
+- **Post**: Forum or announcement posts
+- **Question**: Exam questions
+- **StudentExam**: Student exam attempts
+
+## Middlewares
+- **multer.middleware.js**: Handles file uploads (e.g., profile pictures, study materials)
+
+## Utils
+- **cloudinary.js**: Uploads files to Cloudinary
+- **ApiError.js**: Custom error handler
+- **ApiResponse.js**: Standard API response format
+- **asyncHandler.js**: Async error handling for Express routes
+- **mailSender.js**: Sends emails (e.g., OTP)
+
+---
+
+## License
+This project is for educational purposes.
