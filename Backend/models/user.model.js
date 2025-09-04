@@ -18,6 +18,7 @@ const userSchema = new mogoose.Schema(
             default: "student",
         },
         avatar: { type: String, default: null },
+        isVerified: { type: Boolean, default: false },
     },
     { timestamps: true }
 );
