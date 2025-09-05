@@ -19,16 +19,16 @@ const userSchema = new mogoose.Schema(
         },
         avatar: { type: String, default: null },
         isVerified: { type: Boolean, default: false },
+        refresh_token: { type: String, default: null },
     },
     { timestamps: true }
 );
 
 // instance method to compare a plain password with the stored hash
-userSchema.pre("save", async function (next) {
-    if (!this.isModified("password")) return next();
-
-    this.password = bcrypt.hash(this.password, 10);
-    next();
+userSchema.pre("save", async function () {
+    if (!this.isModified("password")) return;
+    if (!this.password) return;
+    this.password = await bcrypt.hash(this.password, 10);
 });
 
 userSchema.methods.isPasswordCorrect = async function (password) {
